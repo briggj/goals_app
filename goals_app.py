@@ -221,7 +221,6 @@ class GoalsApp(ctk.CTk):
         self.update_display()
 
     def load_goals(self):
-        """Loads goals and assigns a temporary encouragement phrase for the session."""
         load_error = False
         if os.path.exists(DATA_FILE):
             try:
@@ -247,10 +246,6 @@ class GoalsApp(ctk.CTk):
              pass 
 
     def save_goals(self):
-        """Saves the current list of goals to the JSON data file.
-           Temporary keys like '_current_encouragement' might be saved but
-           will be overwritten on next load.
-        """
         try:
             self.goals.sort(key=lambda x: x.get('date', '9999-12-31'))
             with open(DATA_FILE, 'w') as f:
@@ -260,7 +255,6 @@ class GoalsApp(ctk.CTk):
             self.update_status(f"Error saving goals: {e}", "red", persistent=True)
 
     def update_display(self):
-        """Clears and redraws the goals list, using pre-assigned encouragement."""
         for widget in self.display_frame.winfo_children():
             widget.destroy()
 
@@ -310,7 +304,6 @@ class GoalsApp(ctk.CTk):
             delete_button.grid(row=0, column=2, padx=(0, 10), pady=5, sticky="e")
 
     def add_goal(self):
-        """Adds a new goal and assigns its temporary encouragement phrase."""
         goal_name = self.entry_goal.get().strip()
         try:
             goal_date_obj = self.date_picker.get_date()
@@ -358,7 +351,6 @@ class GoalsApp(ctk.CTk):
                 self.update_status("Error: Could not delete goal (invalid index).", "red")
 
     def update_status(self, message, color="gray", persistent=False):
-        """Updates the status label, optionally making errors persistent."""
         self.status_label.configure(text=message, text_color=color)
         if self.status_clear_job:
             self.status_label.after_cancel(self.status_clear_job)
