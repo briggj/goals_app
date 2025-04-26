@@ -1,14 +1,17 @@
 [
     {
         "name": "doing butt stuff",
-        "date": "2017-12-20"
+        "date": "2017-12-20",
+        "_current_encouragement": "No fear!"
     },
     {
         "name": "touching my monkey",
-        "date": "2025-01-07"
+        "date": "2025-01-07",
+        "_current_encouragement": "No fear!"
     },
     {
         "name": "Quit caffeine",
-        "date": "2025-04-01"
+        "date": "2025-04-01",
+        "_current_encouragement": "Fear does not exist in this dojo!"
     }
 ]
