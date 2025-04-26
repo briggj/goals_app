@@ -1,6 +1,5 @@
-# goals_app.py
-# (Includes sorting, auto-clear status, user font size, calendar picker, editing, Johnny Lawrence Encouragement - Stable phrase per session)
-
+# Author: Jason Briggaman 
+# Date: 2025-04-26
 # Required packages:
 # pip install customtkinter
 # pip install tkcalendar
@@ -13,19 +12,18 @@ import random
 from tkcalendar import DateEntry
 import tkinter.messagebox as messagebox
 
-# --- Constants ---
 MAX_GOALS = 10
 DATA_FILE = "goals_data.json"
 SETTINGS_FILE = "settings.json"
 
-# NOTE: Contains explicit language as requested, inspired by Cobra Kai.
+# NOTE: 
 ENCOURAGING_WORDS = [
-    # Original / Standard
+    # Standard
     "You've got this!", "Keep going strong!", "Amazing progress!", "One day at a time!",
     "You're doing great!", "Stay focused!", "Incredible work!", "Persistence pays off!",
     "Keep pushing forward!", "Celebrate this milestone!", "Look how far you've come!",
     "Keep up the momentum!", "Fantastic effort!", "You're inspiring!",
-    # Johnny Lawrence Inspired (May be explicit/intense)
+    # Johnny Lawrence Inspired 
     "Badass milestone!", "Kick that habit's ass!", "QUIET! Silence the weakness!",
     "No mercy on cravings!", "Fear does not exist in this dojo!", "Defeat does not exist!",
     "Get your head out of your ass and keep fighting!", "Stop being a pussy, you got this!",
@@ -42,8 +40,6 @@ FONT_SIZE_INCREMENT = 2
 AVAILABLE_FONT_SIZES = [str(s) for s in range(MIN_FONT_SIZE, MAX_FONT_SIZE + 1, FONT_SIZE_INCREMENT)]
 DATE_ENTRY_PATTERN = 'y-mm-dd'
 
-# --- Helper Functions ---
-# (calculate_time_elapsed remains the same)
 def calculate_time_elapsed(start_date_str):
     """
     Calculates time elapsed since the start_date_str (YYYY-MM-DD).
@@ -83,14 +79,9 @@ def calculate_time_elapsed(start_date_str):
         return "Error calculating time", None
 
 def get_random_encouragement():
-    """Returns a random encouraging phrase from the list."""
-    # This function is still used, but less frequently (on load/add)
     return random.choice(ENCOURAGING_WORDS)
 
-
-# --- Main Application Class ---
 class GoalsApp(ctk.CTk):
-    # (Docstring remains similar)
     def __init__(self):
         super().__init__()
 
@@ -99,35 +90,26 @@ class GoalsApp(ctk.CTk):
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
 
-        # Initialize instance variables
         self.goals = []
         self.status_clear_job = None
         self.current_font_size = DEFAULT_FONT_SIZE
-
-        # Font Tuples
         self.REGULAR_FONT = None
         self.INPUT_FONT = None
         self.BUTTON_FONT = None
         self.INFO_DISPLAY_FONT = None
         self.STATUS_FONT = None
         self.FRAME_LABEL_FONT = None
-        # Load Settings & Fonts
         self.load_settings()
         self._update_font_tuples(self.current_font_size)
 
-        # Load Goals (now assigns encouragement phrases too)
         self.load_goals()
 
-        # --- Configure Main Layout ---
-        # (Layout config remains the same)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=0)
         self.grid_rowconfigure(2, weight=1)
         self.grid_rowconfigure(3, weight=0)
 
-        # --- Input Frame ---
-        # (Input frame widgets remain the same)
         self.input_frame = ctk.CTkFrame(self)
         self.input_frame.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="ew")
         self.input_frame.grid_columnconfigure(1, weight=1)
@@ -145,10 +127,6 @@ class GoalsApp(ctk.CTk):
         self.date_picker.grid(row=1, column=1, padx=5, pady=10, sticky="w")
         self.add_button = ctk.CTkButton(self.input_frame, text="Add Goal", command=self.add_goal, font=self.BUTTON_FONT)
         self.add_button.grid(row=0, column=2, rowspan=2, padx=(5, 10), pady=10, sticky="ns")
-
-
-        # --- Settings Frame ---
-        # (Settings frame widgets remain the same)
         self.settings_frame = ctk.CTkFrame(self)
         self.settings_frame.grid(row=1, column=0, padx=20, pady=(0, 10), sticky="ew")
         self.settings_frame.grid_columnconfigure(0, weight=0)
@@ -161,9 +139,6 @@ class GoalsApp(ctk.CTk):
         )
         self.font_size_combobox.set(str(self.current_font_size))
         self.font_size_combobox.grid(row=0, column=1, padx=5, pady=5, sticky="w")
-
-        # --- Goals Display Frame (Scrollable) ---
-        # (Display frame widgets remain the same)
         self.display_frame_container = ctk.CTkFrame(self)
         self.display_frame_container.grid(row=2, column=0, padx=20, pady=(0, 10), sticky="nsew")
         self.display_frame_container.grid_rowconfigure(0, weight=1)
@@ -174,19 +149,10 @@ class GoalsApp(ctk.CTk):
         )
         self.display_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
         self.display_frame.grid_columnconfigure(0, weight=1)
-
-
-        # --- Status Label (at the bottom) ---
-        # (Status label widget remains the same)
         self.status_label = ctk.CTkLabel(self, text="", text_color="gray", font=self.STATUS_FONT)
         self.status_label.grid(row=3, column=0, padx=20, pady=(0, 10), sticky="ew")
+        self.update_display() 
 
-
-        # --- Initial Goal Display ---
-        self.update_display() # Populate the goal list initially
-
-    # --- Font and Settings Handling Methods ---
-    # (_update_font_tuples, load_settings, save_settings, font_size_changed, _apply_global_font_settings remain the same)
     def _update_font_tuples(self, base_size):
         info_size = base_size + 2
         status_size = base_size - 2 if base_size > MIN_FONT_SIZE else MIN_FONT_SIZE
@@ -254,8 +220,6 @@ class GoalsApp(ctk.CTk):
             print(f"Note: Could not apply font size directly to DatePicker: {e}")
         self.update_display()
 
-    # --- Goal Data Handling Methods ---
-
     def load_goals(self):
         """Loads goals and assigns a temporary encouragement phrase for the session."""
         load_error = False
@@ -272,22 +236,15 @@ class GoalsApp(ctk.CTk):
                 self.goals = []
                 load_error = True
         else:
-            # Data file doesn't exist yet
             self.goals = []
 
-        # *** Assign encouragement phrase for this session ***
         for goal in self.goals:
-            # Add/overwrite temporary key with a random phrase
             goal['_current_encouragement'] = get_random_encouragement()
 
-        # Clear loading errors from status if load was actually successful later
-        # Or keep them if the list is empty due to error
         if not load_error and not self.goals:
-             pass # Keep message if loading failed and list is empty
+             pass 
         elif not load_error:
-             pass # Let other status messages appear or clear naturally
-             # self.update_status("") # Option to immediately clear status if load is ok
-
+             pass 
 
     def save_goals(self):
         """Saves the current list of goals to the JSON data file.
@@ -295,18 +252,12 @@ class GoalsApp(ctk.CTk):
            will be overwritten on next load.
         """
         try:
-            # Sort goals by date before saving for consistency
             self.goals.sort(key=lambda x: x.get('date', '9999-12-31'))
             with open(DATA_FILE, 'w') as f:
-                # Note: We are saving the temporary encouragement key here,
-                # but load_goals overwrites it, so it works as intended.
-                # A cleaner way would be to strip temporary keys before saving.
                 json.dump(self.goals, f, indent=4)
         except Exception as e:
             print(f"Error saving goals: {e}")
             self.update_status(f"Error saving goals: {e}", "red", persistent=True)
-
-    # --- UI Update and Goal Action Methods ---
 
     def update_display(self):
         """Clears and redraws the goals list, using pre-assigned encouragement."""
@@ -319,10 +270,8 @@ class GoalsApp(ctk.CTk):
             return
 
         try:
-            # Sort goals before display
             self.goals.sort(key=lambda x: date.fromisoformat(x.get('date', '9999-12-31')))
         except ValueError:
-             # This status might overwrite loading errors, consider priority
              self.update_status("Warning: Invalid date found during sorting.", "orange")
              self.goals.sort(key=lambda x: x.get('date', '9999-12-31'))
 
@@ -332,16 +281,13 @@ class GoalsApp(ctk.CTk):
 
             elapsed_str, _ = calculate_time_elapsed(goal_date)
 
-            # *** Get the pre-assigned encouragement phrase for this session ***
             encouragement = goal.get('_current_encouragement', get_random_encouragement())
-            # Fallback to random just in case the key is somehow missing
 
-            # Create frame for the goal item
             item_frame = ctk.CTkFrame(self.display_frame)
             item_frame.grid(row=index, column=0, padx=5, pady=(3, 4), sticky="ew")
-            item_frame.grid_columnconfigure(0, weight=1) # Label expands
-            item_frame.grid_columnconfigure(1, weight=0) # Edit button fixed
-            item_frame.grid_columnconfigure(2, weight=0) # Delete button fixed
+            item_frame.grid_columnconfigure(0, weight=1) 
+            item_frame.grid_columnconfigure(1, weight=0) 
+            item_frame.grid_columnconfigure(2, weight=0) 
 
             # Format the info text
             info_text = f"📌 {goal_name} (Since: {goal_date})\n   └── {elapsed_str} - {encouragement}"
@@ -385,9 +331,7 @@ class GoalsApp(ctk.CTk):
             self.update_status(f"Cannot add more than {MAX_GOALS} goals.", "orange")
             return
 
-        # Create the new goal dictionary
         new_goal = {"name": goal_name, "date": goal_date_str}
-        # *** Assign encouragement phrase for this session ***
         new_goal['_current_encouragement'] = get_random_encouragement()
 
         self.goals.append(new_goal)
@@ -399,7 +343,6 @@ class GoalsApp(ctk.CTk):
         self.update_status(f"Goal '{goal_name}' added successfully!", "green")
 
     def delete_goal(self, index):
-        # (Implementation with confirmation remains the same)
         goal_to_delete = self.goals[index].get('name', 'this goal')
         if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete the goal '{goal_to_delete}'?"):
             if 0 <= index < len(self.goals):
@@ -417,21 +360,17 @@ class GoalsApp(ctk.CTk):
     def update_status(self, message, color="gray", persistent=False):
         """Updates the status label, optionally making errors persistent."""
         self.status_label.configure(text=message, text_color=color)
-        # Cancel previous job if it exists
         if self.status_clear_job:
             self.status_label.after_cancel(self.status_clear_job)
             self.status_clear_job = None
 
-        # Only schedule clear if it's not a red error OR if persistent is False
         if color != "red" or not persistent:
             self.status_clear_job = self.status_label.after(
                 STATUS_CLEAR_DELAY_MS,
                 lambda: self.status_label.configure(text="")
             )
 
-    # --- Edit Functionality ---
     def open_edit_dialog(self, index):
-        # (Edit dialog implementation remains the same)
         if not (0 <= index < len(self.goals)):
             self.update_status("Error: Cannot edit goal (invalid index).", "red")
             return
@@ -482,7 +421,6 @@ class GoalsApp(ctk.CTk):
 
 
     def save_edit(self, index, name_widget, date_widget, dialog, status_widget):
-        # (Save edit implementation remains the same)
         new_name = name_widget.get().strip()
         try:
             new_date_obj = date_widget.get_date()
@@ -499,7 +437,6 @@ class GoalsApp(ctk.CTk):
                 status_widget.configure(text=f"Another goal named '{new_name}' already exists.")
                 return
         try:
-            # Update goal data (the temporary encouragement phrase remains unchanged)
             self.goals[index]['name'] = new_name
             self.goals[index]['date'] = new_date_str
             self.save_goals()
@@ -511,7 +448,6 @@ class GoalsApp(ctk.CTk):
             status_widget.configure(text=f"Error saving changes: {e}", text_color="red")
             self.update_status(f"Error saving changes for goal index {index}.", "red")
 
-# --- Run the Application ---
 if __name__ == "__main__":
     app = GoalsApp()
     app.mainloop()
