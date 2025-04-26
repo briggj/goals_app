@@ -10,7 +10,6 @@ import random
 from tkcalendar import DateEntry
 import tkinter.messagebox as messagebox
 
-# --- Constants ---
 MAX_GOALS = 10
 DATA_FILE = "goals_data.json"
 SETTINGS_FILE = "settings.json"
@@ -35,7 +34,7 @@ MAX_FONT_SIZE = 24
 FONT_SIZE_INCREMENT = 2
 AVAILABLE_FONT_SIZES = [str(s) for s in range(MIN_FONT_SIZE, MAX_FONT_SIZE + 1, FONT_SIZE_INCREMENT)]
 DATE_ENTRY_PATTERN = 'dd-mm-y'
-DISPLAY_DATE_FORMAT = "%d-%m-%Y"
+DISPLAY_DATE_FORMAT = "%d %b %Y"
 WINDOW_RESIZE_PADDING_WIDTH = 60
 WINDOW_RESIZE_PADDING_HEIGHT = 60
 
@@ -284,7 +283,7 @@ class GoalsApp(ctk.CTk):
             goal_date_str_iso = goal.get('date', 'No Date')
             try:
                 date_obj = date.fromisoformat(goal_date_str_iso)
-                display_date_str = date_obj.strftime(DISPLAY_DATE_FORMAT)
+                display_date_str = date_obj.strftime(DISPLAY_DATE_FORMAT).upper() 
             except ValueError:
                 display_date_str = goal_date_str_iso + " (invalid)"
 
