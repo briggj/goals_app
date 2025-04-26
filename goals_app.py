@@ -283,20 +283,17 @@ class GoalsApp(ctk.CTk):
             item_frame.grid_columnconfigure(1, weight=0) 
             item_frame.grid_columnconfigure(2, weight=0) 
 
-            # Format the info text
             info_text = f"📌 {goal_name} (Since: {goal_date})\n   └── {elapsed_str} - {encouragement}"
 
             info_label = ctk.CTkLabel(item_frame, text=info_text, justify="left", anchor="w", font=self.INFO_DISPLAY_FONT)
             info_label.grid(row=0, column=0, padx=10, pady=(5,5), sticky="ew")
 
-            # Edit Button
             edit_button = ctk.CTkButton(
                 item_frame, text="Edit", command=lambda i=index: self.open_edit_dialog(i),
                 width=50, font=self.BUTTON_FONT, fg_color="#3B8ED0", hover_color="#2F70A6"
             )
             edit_button.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="e")
 
-            # Delete Button
             delete_button = ctk.CTkButton(
                 item_frame, text="Delete", command=lambda i=index: self.delete_goal(i),
                 width=60, fg_color="#DB3E3E", hover_color="#A92F2F", font=self.BUTTON_FONT
