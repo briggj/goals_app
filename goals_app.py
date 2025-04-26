@@ -10,7 +10,7 @@ import random
 from tkcalendar import DateEntry
 import tkinter.messagebox as messagebox
 
-MAX_GOALS = 10
+# MAX_GOALS = 10
 DATA_FILE = "goals_data.json"
 SETTINGS_FILE = "settings.json"
 
@@ -331,9 +331,9 @@ class GoalsApp(ctk.CTk):
             if existing_goal.get('name', '').lower() == goal_name.lower():
                  self.update_status(f"Goal '{goal_name}' already exists.", "orange")
                  return
-        if len(self.goals) >= MAX_GOALS:
-            self.update_status(f"Cannot add more than {MAX_GOALS} goals.", "orange")
-            return
+#        if len(self.goals) >= MAX_GOALS:
+#            self.update_status(f"Cannot add more than {MAX_GOALS} goals.", "orange")
+#            return
         new_goal = {"name": goal_name, "date": goal_date_str_iso}
         new_goal['_current_encouragement'] = get_random_encouragement()
         self.goals.append(new_goal)
