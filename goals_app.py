@@ -1,5 +1,3 @@
-# Author: Jason Briggaman 
-# Date: 2025-04-26
 # Required packages:
 # pip install customtkinter
 # pip install tkcalendar
@@ -12,18 +10,16 @@ import random
 from tkcalendar import DateEntry
 import tkinter.messagebox as messagebox
 
+# --- Constants ---
 MAX_GOALS = 10
 DATA_FILE = "goals_data.json"
 SETTINGS_FILE = "settings.json"
 
-# NOTE: 
 ENCOURAGING_WORDS = [
-    # Standard
     "You've got this!", "Keep going strong!", "Amazing progress!", "One day at a time!",
     "You're doing great!", "Stay focused!", "Incredible work!", "Persistence pays off!",
     "Keep pushing forward!", "Celebrate this milestone!", "Look how far you've come!",
     "Keep up the momentum!", "Fantastic effort!", "You're inspiring!",
-    # Johnny Lawrence Inspired 
     "Badass milestone!", "Kick that habit's ass!", "QUIET! Silence the weakness!",
     "No mercy on cravings!", "Fear does not exist in this dojo!", "Defeat does not exist!",
     "Get your head out of your ass and keep fighting!", "Stop being a pussy, you got this!",
@@ -38,13 +34,12 @@ MIN_FONT_SIZE = 12
 MAX_FONT_SIZE = 24
 FONT_SIZE_INCREMENT = 2
 AVAILABLE_FONT_SIZES = [str(s) for s in range(MIN_FONT_SIZE, MAX_FONT_SIZE + 1, FONT_SIZE_INCREMENT)]
-DATE_ENTRY_PATTERN = 'y-mm-dd'
+DATE_ENTRY_PATTERN = 'dd-mm-y'
+DISPLAY_DATE_FORMAT = "%d-%m-%Y"
+WINDOW_RESIZE_PADDING_WIDTH = 60
+WINDOW_RESIZE_PADDING_HEIGHT = 60
 
 def calculate_time_elapsed(start_date_str):
-    """
-    Calculates time elapsed since the start_date_str (YYYY-MM-DD).
-    Returns: (display_string, total_days) or (error_string, None)
-    """
     try:
         start_date = date.fromisoformat(start_date_str)
         today = date.today()
@@ -73,7 +68,7 @@ def calculate_time_elapsed(start_date_str):
              return f"{time_str} ago", total_days
 
     except ValueError:
-        return "Invalid Date Format Stored", None
+        return "Invalid Stored Date Format", None
     except Exception as e:
         print(f"Error calculating time for '{start_date_str}': {e}")
         return "Error calculating time", None
@@ -86,19 +81,21 @@ class GoalsApp(ctk.CTk):
         super().__init__()
 
         self.title("Goals! - Keep Track & Stay Motivated")
-        self.geometry("780x650")
+
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
 
         self.goals = []
         self.status_clear_job = None
         self.current_font_size = DEFAULT_FONT_SIZE
+
         self.REGULAR_FONT = None
         self.INPUT_FONT = None
         self.BUTTON_FONT = None
         self.INFO_DISPLAY_FONT = None
         self.STATUS_FONT = None
         self.FRAME_LABEL_FONT = None
+
         self.load_settings()
         self._update_font_tuples(self.current_font_size)
 
@@ -127,6 +124,7 @@ class GoalsApp(ctk.CTk):
         self.date_picker.grid(row=1, column=1, padx=5, pady=10, sticky="w")
         self.add_button = ctk.CTkButton(self.input_frame, text="Add Goal", command=self.add_goal, font=self.BUTTON_FONT)
         self.add_button.grid(row=0, column=2, rowspan=2, padx=(5, 10), pady=10, sticky="ns")
+
         self.settings_frame = ctk.CTkFrame(self)
         self.settings_frame.grid(row=1, column=0, padx=20, pady=(0, 10), sticky="ew")
         self.settings_frame.grid_columnconfigure(0, weight=0)
@@ -151,7 +149,8 @@ class GoalsApp(ctk.CTk):
         self.display_frame.grid_columnconfigure(0, weight=1)
         self.status_label = ctk.CTkLabel(self, text="", text_color="gray", font=self.STATUS_FONT)
         self.status_label.grid(row=3, column=0, padx=20, pady=(0, 10), sticky="ew")
-        self.update_display() 
+        self.update_display()
+        self._adjust_window_size() 
 
     def _update_font_tuples(self, base_size):
         info_size = base_size + 2
@@ -174,10 +173,8 @@ class GoalsApp(ctk.CTk):
                          self.current_font_size = loaded_size
                     else:
                          self.current_font_size = DEFAULT_FONT_SIZE
-                         self.save_settings()
             else:
                  self.current_font_size = DEFAULT_FONT_SIZE
-                 self.save_settings()
         except Exception as e:
              print(f"Error loading settings: {e}. Using default.")
              self.current_font_size = DEFAULT_FONT_SIZE
@@ -198,7 +195,7 @@ class GoalsApp(ctk.CTk):
                 if new_size != self.current_font_size:
                     self.current_font_size = new_size
                     self._update_font_tuples(self.current_font_size)
-                    self._apply_global_font_settings()
+                    self._apply_global_font_settings() 
                     self.save_settings()
             else:
                  self.font_size_combobox.set(str(self.current_font_size))
@@ -215,10 +212,25 @@ class GoalsApp(ctk.CTk):
         self.status_label.configure(font=self.STATUS_FONT)
         self.display_frame.configure(label_font=self.FRAME_LABEL_FONT)
         try:
-            self.date_picker.configure(font=self.INPUT_FONT)
+            self.date_picker.configure(font=self.INPUT_FONT, date_pattern=DATE_ENTRY_PATTERN)
         except Exception as e:
-            print(f"Note: Could not apply font size directly to DatePicker: {e}")
+            print(f"Note: Could not apply font/pattern to DatePicker: {e}")
+
         self.update_display()
+        self._adjust_window_size()
+
+    def _adjust_window_size(self):
+        self.update_idletasks()
+
+        req_width = self.winfo_reqwidth()
+        req_height = self.winfo_reqheight()
+
+        padded_width = req_width + WINDOW_RESIZE_PADDING_WIDTH
+        padded_height = req_height + WINDOW_RESIZE_PADDING_HEIGHT
+
+        self.minsize(padded_width, padded_height)
+        self.geometry(f"{padded_width}x{padded_height}")
+        print(f"Resized window to: {padded_width}x{padded_height} (Min Required: {req_width}x{req_height})") 
 
     def load_goals(self):
         load_error = False
@@ -236,14 +248,12 @@ class GoalsApp(ctk.CTk):
                 load_error = True
         else:
             self.goals = []
-
         for goal in self.goals:
             goal['_current_encouragement'] = get_random_encouragement()
-
         if not load_error and not self.goals:
-             pass 
+             pass
         elif not load_error:
-             pass 
+             pass
 
     def save_goals(self):
         try:
@@ -271,19 +281,23 @@ class GoalsApp(ctk.CTk):
 
         for index, goal in enumerate(self.goals):
             goal_name = goal.get('name', 'Unnamed')
-            goal_date = goal.get('date', 'No Date')
+            goal_date_str_iso = goal.get('date', 'No Date')
+            try:
+                date_obj = date.fromisoformat(goal_date_str_iso)
+                display_date_str = date_obj.strftime(DISPLAY_DATE_FORMAT)
+            except ValueError:
+                display_date_str = goal_date_str_iso + " (invalid)"
 
-            elapsed_str, _ = calculate_time_elapsed(goal_date)
-
+            elapsed_str, _ = calculate_time_elapsed(goal_date_str_iso)
             encouragement = goal.get('_current_encouragement', get_random_encouragement())
 
             item_frame = ctk.CTkFrame(self.display_frame)
             item_frame.grid(row=index, column=0, padx=5, pady=(3, 4), sticky="ew")
-            item_frame.grid_columnconfigure(0, weight=1) 
-            item_frame.grid_columnconfigure(1, weight=0) 
-            item_frame.grid_columnconfigure(2, weight=0) 
+            item_frame.grid_columnconfigure(0, weight=1)
+            item_frame.grid_columnconfigure(1, weight=0)
+            item_frame.grid_columnconfigure(2, weight=0)
 
-            info_text = f"📌 {goal_name} (Since: {goal_date})\n   └── {elapsed_str} - {encouragement}"
+            info_text = f"📌 {goal_name} (Since: {display_date_str})\n   └── {elapsed_str} - {encouragement}"
 
             info_label = ctk.CTkLabel(item_frame, text=info_text, justify="left", anchor="w", font=self.INFO_DISPLAY_FONT)
             info_label.grid(row=0, column=0, padx=10, pady=(5,5), sticky="ew")
@@ -300,11 +314,12 @@ class GoalsApp(ctk.CTk):
             )
             delete_button.grid(row=0, column=2, padx=(0, 10), pady=5, sticky="e")
 
+
     def add_goal(self):
         goal_name = self.entry_goal.get().strip()
         try:
             goal_date_obj = self.date_picker.get_date()
-            goal_date_str = goal_date_obj.isoformat()
+            goal_date_str_iso = goal_date_obj.isoformat()
         except Exception as e:
              print(f"Error getting date from picker: {e}")
              self.update_status("Could not get date from picker.", "red")
@@ -320,10 +335,8 @@ class GoalsApp(ctk.CTk):
         if len(self.goals) >= MAX_GOALS:
             self.update_status(f"Cannot add more than {MAX_GOALS} goals.", "orange")
             return
-
-        new_goal = {"name": goal_name, "date": goal_date_str}
+        new_goal = {"name": goal_name, "date": goal_date_str_iso}
         new_goal['_current_encouragement'] = get_random_encouragement()
-
         self.goals.append(new_goal)
         self.save_goals()
         self.update_display()
@@ -352,7 +365,6 @@ class GoalsApp(ctk.CTk):
         if self.status_clear_job:
             self.status_label.after_cancel(self.status_clear_job)
             self.status_clear_job = None
-
         if color != "red" or not persistent:
             self.status_clear_job = self.status_label.after(
                 STATUS_CLEAR_DELAY_MS,
@@ -365,12 +377,12 @@ class GoalsApp(ctk.CTk):
             return
         goal_data = self.goals[index]
         original_name = goal_data.get('name', '')
-        original_date_str = goal_data.get('date', '')
+        original_date_str_iso = goal_data.get('date', '')
         edit_dialog = ctk.CTkToplevel(self)
         edit_dialog.title("Edit Goal")
         edit_dialog.transient(self)
         edit_dialog.grab_set()
-        edit_dialog.geometry("400x250")
+        edit_dialog.geometry("400x250") 
         dialog_frame = ctk.CTkFrame(edit_dialog)
         dialog_frame.pack(expand=True, fill="both", padx=20, pady=20)
         name_label = ctk.CTkLabel(dialog_frame, text="Goal Name:", font=self.REGULAR_FONT)
@@ -381,12 +393,13 @@ class GoalsApp(ctk.CTk):
         date_label = ctk.CTkLabel(dialog_frame, text="Start/Quit Date:", font=self.REGULAR_FONT)
         date_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
         try:
-            initial_date = date.fromisoformat(original_date_str)
+            initial_date = date.fromisoformat(original_date_str_iso)
         except ValueError:
-            print(f"Warning: Invalid date format '{original_date_str}' for goal '{original_name}'. Defaulting.")
+            print(f"Warning: Invalid date format '{original_date_str_iso}' for goal '{original_name}'. Defaulting.")
             initial_date = date.today()
         edit_date_picker = DateEntry(
-            dialog_frame, width=15, date_pattern=DATE_ENTRY_PATTERN, font=self.INPUT_FONT, borderwidth=2,
+            dialog_frame, width=15, date_pattern=DATE_ENTRY_PATTERN, 
+            font=self.INPUT_FONT, borderwidth=2,
         )
         edit_date_picker.set_date(initial_date)
         edit_date_picker.grid(row=1, column=1, padx=5, pady=5, sticky="w")
@@ -408,12 +421,11 @@ class GoalsApp(ctk.CTk):
         edit_dialog.bind("<Return>", lambda event: save_button.invoke())
         edit_dialog.bind("<Escape>", lambda event: edit_dialog.destroy())
 
-
     def save_edit(self, index, name_widget, date_widget, dialog, status_widget):
         new_name = name_widget.get().strip()
         try:
             new_date_obj = date_widget.get_date()
-            new_date_str = new_date_obj.isoformat()
+            new_date_str_iso = new_date_obj.isoformat() 
         except Exception as e:
             print(f"Error getting date from edit picker: {e}")
             status_widget.configure(text="Error getting date.", text_color="red")
@@ -427,7 +439,7 @@ class GoalsApp(ctk.CTk):
                 return
         try:
             self.goals[index]['name'] = new_name
-            self.goals[index]['date'] = new_date_str
+            self.goals[index]['date'] = new_date_str_iso
             self.save_goals()
             self.update_display()
             self.update_status(f"Goal '{new_name}' updated successfully.", "green")
