@@ -23,4 +23,4 @@ Built With:
     customtkinter
     tkcalendar
 
-(You'll need to pip install customtkinter tkcalendar to run it.)
+(You'll need to pip install customtkinter and tkcalendar to run it.)
